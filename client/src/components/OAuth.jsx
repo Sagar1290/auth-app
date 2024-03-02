@@ -19,7 +19,7 @@ const OAuth = () => {
         email: result.user.email,
         photoURL: result.user.photoURL,
       };
-      const res = await fetch("http://localhost:8000/api/user/google", {
+      const res = await fetch("/api/user/google", {
         method: "post",
         headers: {
           "content-type": "application/json",

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getDownloadURL,
@@ -13,11 +14,14 @@ import {
   updateUserStart,
   updateUserEnd,
   updateUserFailed,
+  deleteUserFailed,
+  deleteUserSuccess,
 } from "../../redux/user/userSlice";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, loading, error } = useSelector((state) => state.user);
   const [image, setImage] = useState(undefined);
   const [uploadError, setUploadError] = useState(null);
   const [uploadPercentage, setUploadPercentage] = useState(0);
@@ -45,21 +49,23 @@ const Profile = () => {
 
     try {
       dispatch(updateUserStart());
-      const res = await fetch(`http://localhost:8000/api/user/update/${id}`, {
+      const res = await fetch(`/api/user/update/${id}`, {
         method: "post",
         headers: {
           "content-type": "application/json",
         },
         body: JSON.stringify(formData),
       });
-      console.log(res);
 
-      if (!res.ok) {
-        dispatch(updateUserFailed(res));
-        throw new Error("Failed to update user details");
-      }
       const data = await res.json();
+      console.log(data);
+      if (data.success == false) {
+        dispatch(updateUserFailed(data));
+        return;
+      }
       dispatch(updateUserEnd(data));
+      alert("user detail updated successfully");
+      setUserUpdated(true);
     } catch (error) {
       console.error("Error updating user:", error.message);
       dispatch(updateUserFailed(error));
@@ -95,8 +101,30 @@ const Profile = () => {
     );
   };
 
-  const handleSignOut = () => {
-    dispatch(signOut());
+  const handleSignOut = async () => {
+    try {
+      await fetch(`/api/user/sign-out`);
+      dispatch(signOut());
+    } catch (error) {
+      console.log("can't sign-out user", error);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const res = await fetch(`/api/user/delete/${id}`, {
+        method: "DELETE",
+      });
+      const data = res.json();
+      if (data.success == false) {
+        dispatch(deleteUserFailed(data));
+        return;
+      }
+      dispatch(deleteUserSuccess());
+    } catch (error) {
+      console.log("error deleting account :", error);
+      dispatch(deleteUserFailed(error));
+    }
   };
 
   const imageRef = useRef(null);
@@ -168,20 +196,24 @@ const Profile = () => {
         />
         <button
           type="submit"
-          className="p-4 uppercase bg-red-700 rounded-md w-full text-white text-lg font-semibold"
+          className="p-4 uppercase bg-red-700 rounded-md w-full text-white text-lg font-semibold disabled:opacity-90"
+          disabled={loading}
         >
-          update
+          {loading ? "loading..." : "update"}
         </button>
       </form>
       <div className="flex justify-between my-4">
-        <span className="text-red-800 cursor-pointer">Delete Account</span>
+        <span className="text-red-800 cursor-pointer" onClick={handleDelete}>
+          Delete Account
+        </span>
         <span className="text-red-800 cursor-pointer" onClick={handleSignOut}>
           Sign Out
         </span>
       </div>
-      <div>
+      <div className="text-blue-800 my-4">
         <p>{userUpdated && "user updated successfully!"}</p>
       </div>
+      <div className="text-red-500 my-4">{error?.error}</div>
     </div>
   );
 };

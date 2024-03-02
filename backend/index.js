@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import cors from 'cors'
+// import cors from 'cors'
 import express from "express"
 import mongoose from "mongoose"
 import userRoute from './routes/user.route.js'
@@ -18,9 +18,9 @@ await mongoose.connect(`${process.env.MONGO_URI}/${DB_NAME}`)
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({
-    origin: process.env.CORS_ORIGIN
-}))
+// app.use(cors({
+//     origin: process.env.CORS_ORIGIN
+// }))
 
 app.use('/api/user', userRoute)
 

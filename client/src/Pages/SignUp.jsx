@@ -17,7 +17,7 @@ const SignUp = () => {
     try {
       setLoading(true);
       setError(false);
-      const res = await fetch("http://localhost:8000/api/user/register", {
+      const res = await fetch("/api/user/register", {
         method: "post",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(formData),

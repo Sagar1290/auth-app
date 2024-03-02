@@ -62,7 +62,7 @@ const loginUsingGoogle = async (req, res, next) => {
 
             const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
             const expiredIn = new Date(Date.now() + 1 * 60 * 60 * 1000);
-            res.cookie("access token", token, { httpOnly: true, expires: expiredIn }).status(200).json({ rest, message: "user login successfully" });
+            res.cookie("access_token", token, { httpOnly: true, expires: expiredIn }).status(200).json({ rest, message: "user login successfully" });
         } else {
 
             const generatedPassword = Math.random().toString(36).slice(-8);
@@ -92,6 +92,7 @@ const loginUsingGoogle = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
     console.log(req.user)
+
     if (req.user.id != req.params.id) return next(errorHandler(403, "you can only update your details"));
 
     try {
@@ -107,11 +108,28 @@ const updateUser = async (req, res, next) => {
         }
         const updatedUser = await User.findByIdAndUpdate(req.params.id, updatedField, { new: true });
 
-        res.status(200).json({ updatedUser, message: "user details updated successfully!" })
+        const { password, ...rest } = updatedUser._doc;
+        res.status(200).json({ rest, message: "user details updated successfully!" });
     }
     catch (error) {
         return next(errorHandler(error))
     }
+}
+
+export const signOut = async (req, res) => {
+    await res.clearCookie('access_token').status(201).json({ message: "user logout successfull" })
+}
+
+export const deleteUser = async (req, res, next) => {
+    if (req.user.id != req.params.id) return (errorHandler(420, "you can only delete your account!"))
+
+    try {
+        await User.findByIdAndDelete(req.params.id)
+        res.clearCookie('access_token').status(200).json({ message: "user deleted succcessfully" })
+    } catch (error) {
+        return next(errorHandler(404, "something went wrong"))
+    }
+
 }
 
 export { regitserUser, loginUser, loginUsingGoogle, updateUser };

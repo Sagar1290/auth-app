@@ -22,7 +22,7 @@ const SignIn = () => {
     e.preventDefault();
     try {
       dispatch(signInStart());
-      const res = await fetch("http://localhost:8000/api/user/login", {
+      const res = await fetch("/api/user/login", {
         method: "post",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(userData),
