@@ -4,20 +4,32 @@ import express from "express"
 import mongoose from "mongoose"
 import userRoute from './routes/user.route.js'
 import cookieParser from 'cookie-parser'
+import path from 'path'
 
 const DB_NAME = "auth_db"
 await mongoose.connect(`${process.env.MONGO_URI}/${DB_NAME}`)
     .then(() => {
-        console.log("Connection to database successful!")
+        console.log("Connection to DB successful!")
     }).catch((err) => {
         console.log(`Error while connecting to db `);
         throw err
     })
 
+const __dirname = path.resolve();
+console.log(__dirname)
 
 const app = express();
+
+app.use(express.static(path.join(__dirname, '/client/dist')))
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'))
+})
+
 app.use(express.json());
 app.use(cookieParser());
+
+// USE OF CORS, BUT IT IS GIVING ERROR WHILE DEALING WITH COOKIES
+
 // app.use(cors({
 //     origin: process.env.CORS_ORIGIN
 // }))
@@ -35,5 +47,5 @@ app.use((err, req, res, next) => {
 })
 const port = process.env.PORT || 8000;
 app.listen(port, () => {
-    console.log(`hey there your app is started at port ${port}`)
+    console.log(`server started at port ${port}`)
 })

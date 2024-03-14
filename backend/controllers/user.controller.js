@@ -57,6 +57,7 @@ const loginUsingGoogle = async (req, res, next) => {
     const { fullname, email, photoURL } = req.body;
     try {
         const validUser = await User.findOne({ email });
+        console.log("user found: ", fullname)
         if (validUser) {
             const { password: hashedPassword, ...rest } = validUser._doc;
 
@@ -64,7 +65,7 @@ const loginUsingGoogle = async (req, res, next) => {
             const expiredIn = new Date(Date.now() + 1 * 60 * 60 * 1000);
             res.cookie("access_token", token, { httpOnly: true, expires: expiredIn }).status(200).json({ rest, message: "user login successfully" });
         } else {
-
+            console.log("new user :", fullname)
             const generatedPassword = Math.random().toString(36).slice(-8);
             const hashedPassword2 = bcryptjs.hashSync(generatedPassword, 10);
 
